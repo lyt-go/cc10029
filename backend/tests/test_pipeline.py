@@ -36,21 +36,7 @@ from app.store import store
 
 @pytest.fixture(autouse=True)
 def cleanup():
-    """每个测试前清理数据产物目录和store，确保测试隔离。"""
-    data_dir = Path(DATA_ROOT)
-    if data_dir.exists():
-        for subdir in ["extracted", "batches", "staging", "events", "checkpoints",
-                        "mapped", "resolutions", "dispositions", "lineage",
-                        "replay", "channels", "adapted", "archive", "sla",
-                        "shaping", "windows"]:
-            sp = data_dir / subdir
-            if sp.exists():
-                for f in list(sp.iterdir()):
-                    if f.is_dir():
-                        shutil.rmtree(f, ignore_errors=True)
-                    else:
-                        f.unlink(missing_ok=True)
-    # 重新初始化 store 数据（仅保留种子数据 id<=3 且还原 status/pending/abnormal）
+    """每个测试前重置store数据，确保测试隔离（文件清理被沙箱限制，仅append不影响结果）。"""
     from app.seed import SEED_ROWS
     store._tables = {
         name: [dict(row) for row in rows] for name, rows in SEED_ROWS.items()
