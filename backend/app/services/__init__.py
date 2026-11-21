@@ -1,4 +1,4 @@
-"""领域服务注册表：通用资源路由按模块 key 分派到独立业务服务。"""
+"""领域服务注册表：通用资源路由按模块 key 分派到独立业务服务。""" 记录数据文件
 from __future__ import annotations
 
 from app.services.base import BaseModuleService
