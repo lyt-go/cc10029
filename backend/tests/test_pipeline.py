@@ -36,7 +36,7 @@ from app.store import store
 
 @pytest.fixture(autouse=True)
 def cleanup():
-    """每个测试前清理数据产物目录，确保测试隔离。"""
+    """每个测试前清理数据产物目录和store，确保测试隔离。"""
     data_dir = Path(DATA_ROOT)
     if data_dir.exists():
         for subdir in ["extracted", "batches", "staging", "events", "checkpoints",
@@ -45,12 +45,16 @@ def cleanup():
                         "shaping", "windows"]:
             sp = data_dir / subdir
             if sp.exists():
-                for f in sp.iterdir():
-                    f.unlink(missing_ok=True)
-    # 清理 store 中非种子数据
-    for mod_name in list(store._tables.keys()):
-        store._tables[mod_name] = [r for r in store._tables[mod_name]
-                                     if int(r.get("id", 0)) <= 3]
+                for f in list(sp.iterdir()):
+                    if f.is_dir():
+                        shutil.rmtree(f, ignore_errors=True)
+                    else:
+                        f.unlink(missing_ok=True)
+    # 重新初始化 store 数据（仅保留种子数据 id<=3 且还原 status/pending/abnormal）
+    from app.seed import SEED_ROWS
+    store._tables = {
+        name: [dict(row) for row in rows] for name, rows in SEED_ROWS.items()
+    }
     yield
 
 
@@ -209,10 +213,10 @@ class TestChain5FieldContractMapping:
 
     def test_field_contract_apply_to_extracted_data(self):
         """验证字段契约对抽取产物执行类型转换与映射。"""
-        # 确保有契约
+        # 确保有契约并确认生效
         fc_svc = FieldContractService()
-        fc_svc.create_contract("ext_a", "dst_a", "string")
-        fc_svc.run_action(1, "确认生效")
+        entry = fc_svc.create_contract("ext_a", "dst_a", "string")
+        fc_svc.run_action(entry["id"], "确认生效")
 
         # 应用契约到抽取产物
         result = fc_svc.apply_contracts("SOUR-0001", record_count=10)

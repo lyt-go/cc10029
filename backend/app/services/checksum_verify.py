@@ -29,8 +29,8 @@ class ChecksumVerifyService(BaseModuleService):
         values = {
             "校验编号": verify_code,
             "批次编号": batch_code,
-            "源端校验值": "",
-            "目标校验值": "",
+            "源端校验值": "pending",
+            "目标校验值": "pending",
             "分片校验": "sha256",
             "差异条数": "0",
             "校验算法": "SHA256",

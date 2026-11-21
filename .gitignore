@@ -94,3 +94,4 @@ desktop.ini
 *.db
 *.pid
 *.seed
+data/
